@@ -360,4 +360,254 @@ class PhpAsync
             }
         }
     }
+
+    public function fireClient(){
+        set_time_limit(0);
+        $fileList = [];
+        $fileTreeLib = new FileTree();
+        $clientFileArr = $fileTreeLib->fileList($this->config['client-async-path']);
+        foreach($clientFileArr as $cf){
+            $fileList[md5($cf)] = [
+                'file'=>$cf,
+                'time'=>filemtime($cf)
+            ];
+        }
+        unset($fileTreeLib);
+
+        echo PHP_EOL;
+        echo 'start compare files ... ';
+        while(true){
+            $newFileList = [];
+            $fileTreeLib = new FileTree();
+            $clientFileArr = $fileTreeLib->fileList($this->config['client-async-path']);
+            foreach($clientFileArr as $cf){
+                $newFileList[md5($cf)] = [
+                    'file'=>$cf,
+                    'time'=>filemtime($cf)
+                ];
+            }
+            unset($fileTreeLib);
+            foreach($newFileList as $new_key => $new_file){
+                if(array_key_exists($new_key,$fileList)){
+                    $oriTime = $fileList[$new_key]['time'];
+                    $newTime = $new_file['time'];
+                    if($oriTime != $newTime){
+                        // 更新
+                        $this->updateFile($new_file['file']);
+                        usleep(1000);
+                    }
+                }else{
+                    // 新增
+                    $this->addFile($new_file['file']);
+                    usleep(1000);
+                }
+            }
+
+            $diffArr = array_diff_key($fileList,$newFileList);
+            foreach($diffArr as $diff_file){
+                // 删除
+                $this->deleteFile($diff_file['file']);
+                usleep(1000);
+            }
+            $fileList = $newFileList;
+            sleep(5);
+        }
+    }
+
+    public function addFile($file){
+        $client = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+        $connectRes = socket_connect($client, $this->config['ip'], $this->config['port']);
+        if(!$connectRes){
+            echo PHP_EOL;
+            echo 'socket connect failed - '.$this->config['ip'].' - '.$this->config['port'];
+            exit;
+        }
+        echo PHP_EOL;
+        $relative_file = str_replace($this->config['client-async-path'],'',$file);
+        echo 'ready add - '.$relative_file;
+
+        while (true){
+            $response = socket_read($client, 1024, PHP_NORMAL_READ);
+            $commandParse = Command::getCommand($response,$this->config['command_separator']);
+            if(is_array($commandParse)){
+                $command = $commandParse['command'];
+                if($command == 'shakeSuccess'){
+                    // 发送新增命令
+                    socket_write($client, "|@-addFile-@|\n");
+                    continue;
+                } elseif ($command == 'commandDone'){
+                    // 发送新增文件路径
+                    socket_write($client, "|@-fileName".$this->config['command_separator'].$relative_file."-@|\n");
+                    continue;
+                } elseif ($command == 'reachMaxConnections'){
+                    echo PHP_EOL;
+                    echo 'server reachMaxConnections';
+                    break;
+                } elseif ($command == 'done'){
+                    break;
+                } elseif ($command == 'serverLostSocket'){
+                    echo PHP_EOL;
+                    echo 'server lost socket , retry';
+                    break;
+                } elseif ($command == 'fileLock'){
+                    echo PHP_EOL;
+                    echo 'server already lock file , retry';
+                    break;
+                } elseif ($command == 'paramsError'){
+                    echo PHP_EOL;
+                    echo 'param error!';
+                    break;
+                } elseif($command == 'fileOpenError'){
+                    echo PHP_EOL;
+                    echo 'LOG::SYSTEM_ERROR::server open file error!!!';
+                    break;
+                } elseif ($command == 'fileNameAfter'){
+                    $fp = fopen($file,"rt");
+                    $buffer = 900;//每次读取 900 字节
+                    while(!feof($fp)){
+                        $str = fread($fp,$buffer);
+                        socket_write($client, $str);
+                        usleep(1000);
+                    }
+                    socket_write($client, "\n");
+                    socket_write($client, "|@-fileComplete-@|\n");
+                    continue;
+                } else {
+                    echo PHP_EOL;
+                    echo 'Undefined command';
+                    break;
+                }
+
+            }else{
+            }
+        }
+        socket_close($client);
+    }
+
+    public function updateFile($file){
+        $client = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+        $connectRes = socket_connect($client, $this->config['ip'], $this->config['port']);
+        if(!$connectRes){
+            echo 'socket connect failed - '.$this->config['ip'].' - '.$this->config['port'];
+            exit;
+        }
+        echo PHP_EOL;
+        $relative_file = str_replace($this->config['client-async-path'],'',$file);
+        echo 'ready update - '.$relative_file;
+
+        while (true){
+            $response = socket_read($client, 1024, PHP_NORMAL_READ);
+            $commandParse = Command::getCommand($response,$this->config['command_separator']);
+            if(is_array($commandParse)){
+                $command = $commandParse['command'];
+                if($command == 'shakeSuccess'){
+                    // 发送新增命令
+                    socket_write($client, "|@-updateFile-@|\n");
+                    continue;
+                } elseif ($command == 'commandDone'){
+                    // 发送新增文件路径
+                    socket_write($client, "|@-fileName".$this->config['command_separator'].$relative_file."-@|\n");
+                    continue;
+                } elseif ($command == 'reachMaxConnections'){
+                    echo PHP_EOL;
+                    echo 'server reachMaxConnections';
+                    break;
+                } elseif ($command == 'done'){
+                    break;
+                } elseif ($command == 'serverLostSocket'){
+                    echo PHP_EOL;
+                    echo 'server lost socket , retry';
+                    break;
+                } elseif ($command == 'fileLock'){
+                    echo PHP_EOL;
+                    echo 'server already lock file , retry';
+                    break;
+                } elseif ($command == 'paramsError'){
+                    echo PHP_EOL;
+                    echo 'param error!';
+                    break;
+                } elseif($command == 'fileOpenError'){
+                    echo PHP_EOL;
+                    echo 'LOG::SYSTEM_ERROR::server open file error!!!';
+                    break;
+                } elseif ($command == 'fileNameAfter'){
+                    $fp = fopen($file,"rt");
+                    $buffer = 900;//每次读取 900 字节
+                    while(!feof($fp)){//循环读取，直至读取完整个文件
+                        //$str = "|@-fileNumber".$this->config['command_separator'].$number.$this->config['command_separator'].fread($fp,$buffer)."-@|\n";
+                        $str = fread($fp,$buffer);
+                        socket_write($client, $str);
+                        usleep(1000); // 暂且以这种方式保证顺序不出错
+                    }
+                    socket_write($client, "\n");
+                    socket_write($client, "|@-fileComplete-@|\n");
+                    continue;
+                } else {
+                    echo PHP_EOL;
+                    echo 'Undefined command';
+                    break;
+                }
+
+            }else{
+            }
+        }
+        socket_close($client);
+    }
+
+    public function deleteFile($file){
+        $client = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+        $connectRes = socket_connect($client, $this->config['ip'], $this->config['port']);
+        if(!$connectRes){
+            echo 'socket connect failed - '.$this->config['ip'].' - '.$this->config['port'];
+            exit;
+        }
+        echo PHP_EOL;
+        $relative_file = str_replace($this->config['client-async-path'],'',$file);
+        echo 'ready delete - '.$relative_file;
+
+        while (true){
+            $response = socket_read($client, 1024, PHP_NORMAL_READ);
+            $commandParse = Command::getCommand($response,$this->config['command_separator']);
+            if(is_array($commandParse)){
+                $command = $commandParse['command'];
+                if($command == 'shakeSuccess'){
+                    // 发送删除命令
+                    socket_write($client, "|@-deleteFile-@|\n");
+                    continue;
+                } elseif ($command == 'commandDone'){
+                    // 发送删除文件路径
+                    socket_write($client, "|@-fileName".$this->config['command_separator'].$relative_file."-@|\n");
+                    continue;
+                } elseif ($command == 'reachMaxConnections'){
+                    echo PHP_EOL;
+                    echo 'server reachMaxConnections';
+                    break;
+                } elseif ($command == 'done'){
+                    break;
+                } elseif ($command == 'serverLostSocket'){
+                    echo PHP_EOL;
+                    echo 'server lost socket , retry';
+                    break;
+                } elseif ($command == 'fileLock'){
+                    echo PHP_EOL;
+                    echo 'server already lock file , retry';
+                    break;
+                } elseif ($command == 'paramsError'){
+                    echo PHP_EOL;
+                    echo 'param error!';
+                    break;
+                } elseif ($command == 'fileNameAfter'){
+                    socket_write($client, "|@-fileComplete-@|\n");
+                    continue;
+                } else {
+                    echo PHP_EOL;
+                    echo 'Undefined command';
+                    break;
+                }
+
+            }else{
+            }
+        }
+        socket_close($client);
+    }
 }
