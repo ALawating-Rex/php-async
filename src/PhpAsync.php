@@ -9,7 +9,7 @@ class PhpAsync
 {
     private $config = [];
     private $socket_pool_max = 1;
-    private $socket_pool = [1];
+    private $socket_pool = [1,2];
     public $curr_file = 'test.php';
     public $data = [];
     public $sid = 1;
@@ -354,9 +354,6 @@ class PhpAsync
                         socket_write($s,"|@-done-@|\n"); // 要求客户端主动关闭
                     }
                 }
-
-                echo PHP_EOL;
-                echo 'server loop one time done - 999';
             }
         }
     }
@@ -424,7 +421,7 @@ class PhpAsync
         }
         echo PHP_EOL;
         $relative_file = str_replace($this->config['client-async-path'],'',$file);
-        echo 'ready add - '.$relative_file;
+        echo 'add - '.$relative_file;
 
         while (true){
             $response = socket_read($client, 1024, PHP_NORMAL_READ);
@@ -493,7 +490,7 @@ class PhpAsync
         }
         echo PHP_EOL;
         $relative_file = str_replace($this->config['client-async-path'],'',$file);
-        echo 'ready update - '.$relative_file;
+        echo 'update - '.$relative_file;
 
         while (true){
             $response = socket_read($client, 1024, PHP_NORMAL_READ);
@@ -563,7 +560,7 @@ class PhpAsync
         }
         echo PHP_EOL;
         $relative_file = str_replace($this->config['client-async-path'],'',$file);
-        echo 'ready delete - '.$relative_file;
+        echo 'delete - '.$relative_file;
 
         while (true){
             $response = socket_read($client, 1024, PHP_NORMAL_READ);
