@@ -50,8 +50,8 @@ class PhpAsync
                     socket_write($client,$msg,strlen($msg)); //握手成功
                     $remoteInfo = socket_getpeername($client,$remoteAddr,$remotePort);
                     $clientKey = md5($remoteAddr.':'.$remotePort);
-                    echo PHP_EOL;
-                    echo 'client connected : '.$remoteAddr.':'.$remotePort;
+                    //echo PHP_EOL;
+                    //echo 'client connected : '.$remoteAddr.':'.$remotePort;
                     $clientInfo = [
                         'sid' => $sid,
                         'ip' => $remoteAddr,
@@ -94,7 +94,6 @@ class PhpAsync
                 //echo $buf.'------- active socket post data -------'.PHP_EOL;
                 if(strlen($buf) < 1){ //意味着客户端主动关闭了链接
                     echo PHP_EOL;
-                    echo 'client shutdown!!!';
                     $k = array_search($s,$allSockets);
                     unset($allSockets[$k]);
                     $this->socket_pool[] = $this->data[$clientKey]['sid'];
@@ -190,6 +189,8 @@ class PhpAsync
                                     $this->data[$clientKey]['file'] = $fileName;
 
                                     // READY WRITE CONTENT
+                                    echo PHP_EOL;
+                                    echo 'LOG::INFO::add file:'.$this->config['server-async-path'].$fileName;
                                     $this->data[$clientKey]['duplicate_file'] = $this->config['server-async-path'].$fileName.$this->config['duplicate_name_suffix'];
                                     FileTree::mkMutiDir(dirname($this->data[$clientKey]['duplicate_file']));
                                     $this->data[$clientKey]['file_handler'] = fopen($this->data[$clientKey]['duplicate_file'], "at");
@@ -264,6 +265,8 @@ class PhpAsync
                                     $this->data[$clientKey]['file'] = $fileName;
 
                                     // READY WRITE CONTENT
+                                    echo PHP_EOL;
+                                    echo 'LOG::INFO::update file:'.$this->config['server-async-path'].$fileName;
                                     $this->data[$clientKey]['duplicate_file'] = $this->config['server-async-path'].$fileName.$this->config['duplicate_name_suffix'];
                                     FileTree::mkMutiDir(dirname($this->data[$clientKey]['duplicate_file']));
                                     $this->data[$clientKey]['file_handler'] = fopen($this->data[$clientKey]['duplicate_file'], "at");
