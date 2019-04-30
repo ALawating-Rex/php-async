@@ -1,9 +1,10 @@
 # php-async
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/ALawating-Rex/php-async/blob/master/LICENSE) [![LICENSE](https://img.shields.io/badge/license-Anti%20996-blue.svg)](https://github.com/996icu/996.ICU/blob/master/LICENSE)
-###介绍
+
+### 介绍
 `php-async` 是基于 PHP 开发的，方便开发者直接在本地调试远程 **测试服务器** 代码的工具
 
-###特性
+### 特性
 - 使用简单
 - 可配置
 - 使用 socket 通讯
@@ -11,7 +12,7 @@
 ### 安装
 > composer require aex/php-async ^1.0.0 -vvv
 
-###使用
+### 使用
 
 #### 服务端：(async_server.php)
 	<?php
@@ -72,6 +73,6 @@
 - 同步修改的文件最后一行都多一个换行
 - 删除目录，服务端只会把下面的所有文件删除，留下空目录
 
-###License
+### License
 ------------
 `php-async` is licensed under [The MIT License (MIT)](LICENSE).
