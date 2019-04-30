@@ -40,7 +40,7 @@ class PhpAsync
 
         while(true){
             $copySockets = $allSockets;
-            if(socket_select($copySockets,$write,$except,0) === false){
+            if(socket_select($copySockets,$write,$except,0,1000) === false){
                 exit('socket error');
             }
 
