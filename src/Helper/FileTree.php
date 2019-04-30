@@ -19,7 +19,7 @@ class FileTree{
         $list = glob($path.$pattern,GLOB_BRACE);
         foreach($list as $l){
             if(!is_dir($l)){
-                $this->result[] = $l;
+                $this->result[] = str_replace('\\','/',$l);
             }else{
                 if(substr($l,0,1) == '.'){
                     continue;

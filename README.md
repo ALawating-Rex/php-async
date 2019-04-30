@@ -43,25 +43,34 @@
 	$config = [
 		'ip' => '0.0.0.0', // 监听的ip
 		'port' => 8313, // 监听的端口
-		'server-async-path' => '/code/test_code/' // 服务端同步目录的绝对路径，以/(DIRECTORY_SEPARATOR)结尾
-		'duplicate_name_suffix' => '.pasync'; // 副本文件后缀（生成的临时文件，应避免是你项目会用到的后缀）
-		'command_separator' => '(::)'; // 命令分隔符
+		'server-async-path' => '/code/test_code/', // 服务端同步目录的绝对路径，以/(DIRECTORY_SEPARATOR)结尾
+		'duplicate_name_suffix' => '.pasync', // 副本文件后缀（生成的临时文件，应避免是你项目会用到的后缀）
+		'command_separator' => '(::)' // 命令分隔符
 	];
 #### 客户端
 	$config = [
 		'ip' => '127.0.0.1', // 服务端ip
 		'port' => 8313, // 服务端端口
-		'client-async-path' => '/code/test_code/' // 客户端同步目录的绝对路径，以/(DIRECTORY_SEPARATOR)结尾
-		'duplicate_name_suffix' => '.pasync'; // 副本文件后缀（生成的临时文件，应避免是你项目慧勇斗啊）
-		'command_separator' => '(::)'; // 命令分隔符
+		'client-async-path' => '/code/test_code/', // 客户端同步目录的绝对路径，以/(DIRECTORY_SEPARATOR)结尾
+		'duplicate_name_suffix' => '.pasync', // 副本文件后缀（生成的临时文件，应避免是你项目慧勇斗啊）
+		'command_separator' => '(::)' // 命令分隔符
 	];
 
 >说明： **此项目应该避免在生产环境使用，除非你非常了解他可能存在的问题，且能够快速恢复被修改的文件**
+>不配置任何项目直接运行，项目会同步 vendor/aex/php-async/test_code/下的 client 和 server目录
+>你可以尝试修改client下的文件看server目录的结果
+>`php-async` 运行之前默认认为服务端代码和客户端代码是一致的，只会检测到开始运行后增量的变化
 
 ### 使用场景举例
 >在开发微信项目的时候，很多api只能在外部服务器测试使用，在测试服务器直接修改代码又不能运行得心应手的IDE,如果服务器使用git
 >本地代码每次修改都要提交并推送，即使只是修改了一行调试代码。服务器同时需要拉取代码，即使配置钩子，也要有个配置钩子的成本。
 >使用 `php-async` 使得你每次本地修改，几乎都能立刻（间隔5秒）在测试环境看到调试效果。调试完成你可以使用 git revert 还原代码
+
+### 已知BUG
+> 因为精力有限，次要BUG 会后续慢慢修复
+
+- 同步修改的文件最后一行都多一个换行
+- 删除目录，服务端只会把下面的所有文件删除，留下空目录
 
 ###License
 ------------

@@ -24,6 +24,8 @@ class PhpAsync
         $this->config['duplicate_name_suffix'] = '.pasync'; // 副本文件后缀
         $this->config['command_separator'] = '(::)'; // 命令分隔符
 
+        $this->config['server-async-path'] = str_replace('\\','/',$this->config['server-async-path']);
+        $this->config['client-async-path'] = str_replace('\\','/',$this->config['client-async-path']);
         if(!empty($config) && is_array($config)){
             $this->config = array_merge($this->config,$config);
         }
